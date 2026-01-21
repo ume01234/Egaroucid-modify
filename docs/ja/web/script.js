@@ -16,9 +16,6 @@ const lang_tweet_str_5_win = '石勝ちしました！';
 const lang_tweet_str_5_lose = '石負けしました…';
 const lang_tweet_str_5_draw = 'と引き分けました！';
 const lang_tweet_result = '結果をツイート！';
-const lang_ai_loading = 'AI読み込み中…';
-const lang_ai_loaded = 'AI読み込み完了！';
-const lang_ai_load_failed = 'AI読み込み失敗 リロードしてください';
 
 
 
@@ -53,7 +50,6 @@ let level_idx = 0;
 let level_names = [];
 let game_end = false;
 let value_calculated = false;
-let record = [];
 let step = 0;
 let isstart = true;
 let show_value = true;
@@ -152,17 +148,6 @@ function start() {
     var show_value_elem = document.getElementById('show_value');
     show_value_elem.disabled = true;
     show_value = show_value_elem.checked;
-    var show_graph_elem = document.getElementById('show_graph');
-    show_graph_elem.disabled = true;
-    show_graph = show_graph_elem.checked;
-    var show_legal_elem = document.getElementById('show_legal');
-    show_legal_elem.disabled = true;
-    show_legal = show_legal_elem.checked;
-    var auto_pass_elem = document.getElementById('auto_pass');
-    auto_pass_elem.disabled = true;
-    auto_pass = auto_pass_elem.checked;
-    record = [];
-    document.getElementById('record').innerText = '';
     ai_player = -1;
     let players = document.getElementsByName('ai_player');
     for (var i = 0; i < 2; ++i) {
@@ -466,27 +451,18 @@ function move(y, x) {
             }
         }
     }
-    ++record.length;
-    record[record.length - 1] = [y, x];
-    update_record();
     ++n_stones;
     player = 1 - player;
     show(y, x);
 }
 
-function update_record() {
-    var record_html = document.getElementById('record');
-    var new_coord = String.fromCharCode(97 + record[record.length - 1][1]) + String.fromCharCode(49 + record[record.length - 1][0]);
-    record_html.innerHTML += new_coord;
-}
-
 function update_graph(s) {
     if (show_graph){
-        graph.data.labels.push(record.length);
+        graph.data.labels.push(graph.data.labels.length + 1);
         graph.data.datasets[0].data.push(s);
         graph.update();
     } else {
-        let tmp = [record.length, s];
+        let tmp = [graph_values.length + 1, s];
         graph_values.push(tmp);
     }
 }
@@ -549,12 +525,6 @@ function end_game() {
     document.getElementById('start').disabled = false;
     var show_value_elem = document.getElementById('show_value');
     show_value_elem.disabled = false;
-    var show_graph_elem = document.getElementById('show_graph');
-    show_graph_elem.disabled = false;
-    var show_legal_elem = document.getElementById('show_legal');
-    show_legal_elem.disabled = false;
-    var auto_pass_elem = document.getElementById('auto_pass');
-    auto_pass_elem.disabled = false;
     level_range.disabled = false;
     let players = document.getElementsByName('ai_player');
     for (var i = 0; i < 2; ++i)
@@ -609,17 +579,9 @@ window.addEventListener('DOMContentLoaded', function () {
 });
 
 window.onload = function() {
-    //document.getElementById('ai_info').innerText = lang_ai_loading + " " + loading_percent + "%";
-    document.getElementById('ai_info').innerText = lang_ai_loading;
-
     const scriptElem = document.createElement('script');
     scriptElem.src = 'ai.js';
-    //scriptElem.addEventListener('load', (e) => {
-    //document.getElementById('ai_info').innerText = lang_ai_initializing;
-    //});
     document.body.appendChild(scriptElem);
-
-    //setInterval(display_loading, 100);
 };
 
 /*
@@ -650,14 +612,11 @@ function initialize_ai(){
                 document.getElementById('start').disabled = false;
                 document.getElementById('reset').disabled = false;
                 ai_initializing = false;
-                document.getElementById('ai_info').innerText = lang_ai_loaded;
             } else{
                 console.error(exception);
-                document.getElementById('ai_info').innerText = lang_ai_load_failed;
             }
         } catch(exception){
             console.error(exception);
-            document.getElementById('ai_info').innerText = lang_ai_load_failed;
         }
         clearInterval(initializing_var);
     }
@@ -668,12 +627,6 @@ function reset(){
     var show_value_elem = document.getElementById('show_value');
     show_value_elem.disabled = false;
     show_value = show_value_elem.checked;
-    var show_graph_elem = document.getElementById('show_graph');
-    show_graph_elem.disabled = false;
-    var show_legal_elem = document.getElementById('show_legal');
-    show_legal_elem.disabled = false;
-    var auto_pass_elem = document.getElementById('auto_pass');
-    auto_pass_elem.disabled = false;
     level_range.disabled = false;
     let players = document.getElementsByName('ai_player');
     for (var i = 0; i < 2; ++i){
