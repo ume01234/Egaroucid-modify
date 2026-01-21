@@ -1,0 +1,6 @@
+Home /
+Download /download/
+Usage /usage/
+Console Version /console/
+Web Version /web/
+Technology /technology/
