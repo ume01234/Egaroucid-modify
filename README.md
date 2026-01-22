@@ -1,86 +1,73 @@
-# Egaroucid
+# 接戦オセロAI（Egaroucid改造版）
 
-One of the strongest Othello AI Application in the world
+**人間と接戦になるように調整されたオセロAI**
 
-See also https://www.egaroucid.nyanyan.dev/en/ for detail
+Webブラウザで遊べます。
 
+---
 
+## 遊び方
 
-## Lineup
+1. [Web版](https://hashizumerikuto.github.io/Egaroucid-modify/ja/web/)にアクセス
+2. 先攻/後攻を選んで「対局開始」
 
-Totally free application
+---
 
-* **[Egaroucid](https://www.egaroucid.nyanyan.dev/en/) - GUI application**
-  
-  * Desktop application for Windows / macOS
-  * Japanese / English / Chinese
-  * GUI with [Siv3D](https://github.com/Siv3D)
-  
-* **[Egaroucid for Console](https://www.egaroucid.nyanyan.dev/en/console) - Console application**
-  
-  * Windows / MacOS / Linux
-  * Edax-like format / Go Text Protocol(GTP)
-  * English
-  
-* **[Egaroucid for Web](https://www.egaroucid.nyanyan.dev/en/web/) - Web application**
-  
-  * Play on your browser
-  * Japanese / English
-  
-  
+## 特徴
 
-![app_en](img/screen_shots/app_en.png)
+- **接戦を演出**: AIが相手の実力に合わせて手を調整
+- **累積評価補正**: ゲーム全体を通してスコアが拮抗するよう自動調整
+- **ブラウザで動作**: インストール不要、WebAssemblyで高速動作
 
-![egaroucid_for_console](img/screen_shots/egaroucid_for_console.png)
+---
 
-![egaroucid_for_web](img/screen_shots/egaroucid_for_web_en.png)
+## 技術的な仕組み
 
+「ミラーリング + 累積評価補正」方式を採用：
 
+1. 人間が打った手の評価値を計算
+2. これまでの累積評価の差分を計算
+3. AIは累積差分を補正したターゲットに最も近い手を選択
 
+詳細は [project_reference.md](project_reference.md) を参照。
 
+---
 
-## Get Egaroucid Now!
+## ビルド方法
 
-- Egaroucid
-  - Windows: Download & Install it from [Website](https://www.egaroucid.nyanyan.dev/en/download/) or [GitHub Releases](https://github.com/Nyanyan/Egaroucid/releases)
-  - MacOS / Linux: Please build by yourself!
-- Egaroucid for Console
-  - Windows: Download & Unzip it from [Website](https://www.egaroucid.nyanyan.dev/en/console/) or [GitHub Releases](https://github.com/Nyanyan/Egaroucid/releases)
-  - MacOS / Linux: Please build by yourself using g++ or clang! [Build Instruction](https://www.egaroucid.nyanyan.dev/en/console/#Linux%20/%20MacOS)
-- Egaroucid for Web
-  - Visit [Website](https://www.egaroucid.nyanyan.dev/en/web/) and play now!
+```bash
+cd src
+em++ Egaroucid_for_Web.cpp -o ai.js -s WASM=1 \
+  -s "EXPORTED_FUNCTIONS=['_init_ai', '_ai_js', '_ai_mirror_js', '_calc_opponent_eval_js', '_calc_value', '_stop', '_resume', '_reset_cumulative', '_malloc', '_free']" \
+  -s "EXPORTED_RUNTIME_METHODS=['ccall','cwrap']" \
+  -O3 -s TOTAL_MEMORY=629145600 -s ALLOW_MEMORY_GROWTH=1
 
+cp ai.js ai.wasm ../docs/ja/web/
+```
 
+要件: Emscripten 3.1.20以降
 
+---
 
-## Looking for Your Voice
-
-**Please contact me [here](https://docs.google.com/forms/d/e/1FAIpQLSd6ML1T1fc707luPEefBXuImMnlM9cQP8j-YHKiSyFoS-8rmQ/viewform)!**
-
-* Want to use Egaroucid in your language?
-* Want some new commands?
-* Have a nice idea to improve?
-* Want to be a tester for new version?
-* Like this software?
-
-I would like to hear your opinion.
-
-
-
-## License
+## ライセンス
 
 GNU General Public License v3.0 or later
 
-**If you want to use Egaroucid in your project, I can customize and build Egaroucid for you to avoid GPL-infection to your project. Please feel free to contact me [here](https://docs.google.com/forms/d/e/1FAIpQLSd6ML1T1fc707luPEefBXuImMnlM9cQP8j-YHKiSyFoS-8rmQ/viewform).**
+本プロジェクトは [Egaroucid](https://github.com/Nyanyan/Egaroucid) をフォーク・改造したものです。
 
+---
 
+## クレジット
 
-## Creator
+### 原作者
 
 [Takuto Yamana (a.k.a Nyanyan)](https://nyanyan.dev/en/)
 
+Egaroucid - One of the strongest Othello AI in the world
+https://www.egaroucid.nyanyan.dev/
 
+---
 
-## Notes
+## 注意事項
 
-オセロ・Othelloは登録商標です。 TM&© Othello,Co. and MegaHouse
+オセロ・Othelloは登録商標です。 TM&(C) Othello,Co. and MegaHouse
