@@ -32,7 +32,7 @@ inline int nega_alpha_eval1(Search *search, int alpha, int beta, bool skipped, c
     uint64_t legal = search->board.get_legal();
     if (legal == 0ULL){
         if (skipped)
-            return end_evaluate(&search->board);
+            return end_evaluate_close_game(&search->board);
         search->eval_feature_reversed ^= 1;
         search->board.pass();
             v = -nega_alpha_eval1(search, -beta, -alpha, true, searching);
@@ -45,7 +45,7 @@ inline int nega_alpha_eval1(Search *search, int alpha, int beta, bool skipped, c
         calc_flip(&flip, &search->board, cell);
         eval_move(search, &flip);
         search->move(&flip);
-            g = -mid_evaluate_diff(search);
+            g = -mid_evaluate_close_game(search);
         search->undo(&flip);
         eval_undo(search, &flip);
         ++search->n_nodes;
@@ -64,12 +64,12 @@ int nega_alpha(Search *search, int alpha, int beta, int depth, bool skipped, con
     if (depth == 1)
         return nega_alpha_eval1(search, alpha, beta, skipped, searching);
     if (depth == 0)
-        return mid_evaluate_diff(search);
+        return mid_evaluate_close_game(search);
     int g, v = -INF;
     uint64_t legal = search->board.get_legal();
     if (legal == 0ULL){
         if (skipped)
-            return end_evaluate(&search->board);
+            return end_evaluate_close_game(&search->board);
         search->eval_feature_reversed ^= 1;
         search->board.pass();
             v = -nega_alpha(search, -beta, -alpha, depth, true, searching);
@@ -104,7 +104,7 @@ int nega_alpha_ordering_nomemo(Search *search, int alpha, int beta, int depth, b
     if (depth == 1)
         return nega_alpha_eval1(search, alpha, beta, skipped, searching);
     if (depth == 0)
-        return mid_evaluate_diff(search);
+        return mid_evaluate_close_game(search);
     ++(search->n_nodes);
     int first_alpha = alpha;
     if (legal == LEGAL_UNDEFINED)
@@ -112,7 +112,7 @@ int nega_alpha_ordering_nomemo(Search *search, int alpha, int beta, int depth, b
     int g, v = -INF;
     if (legal == 0ULL){
         if (skipped)
-            return end_evaluate(&search->board);
+            return end_evaluate_close_game(&search->board);
         search->eval_feature_reversed ^= 1;
         search->board.pass();
             v = -nega_alpha_ordering_nomemo(search, -beta, -alpha, depth, true, LEGAL_UNDEFINED, searching);
@@ -189,7 +189,7 @@ int nega_alpha_ordering(Search *search, int alpha, int beta, int depth, bool ski
         if (depth == 1)
             return nega_alpha_eval1(search, alpha, beta, skipped, searching);
         if (depth == 0)
-            return mid_evaluate_diff(search);
+            return mid_evaluate_close_game(search);
     }
     ++search->n_nodes;
     uint32_t hash_code = search->board.hash() & TRANSPOSE_TABLE_MASK;
@@ -211,7 +211,7 @@ int nega_alpha_ordering(Search *search, int alpha, int beta, int depth, bool ski
     int g, v = -INF;
     if (legal == 0ULL){
         if (skipped)
-            return end_evaluate(&search->board);
+            return end_evaluate_close_game(&search->board);
         search->eval_feature_reversed ^= 1;
         search->board.pass();
             v = -nega_alpha_ordering(search, -beta, -alpha, depth, true, LEGAL_UNDEFINED, is_end_search, searching);
@@ -289,7 +289,7 @@ int nega_scout(Search *search, int alpha, int beta, int depth, bool skipped, uin
         if (depth == 1)
             return nega_alpha_eval1(search, alpha, beta, skipped, searching);
         if (depth == 0)
-            return mid_evaluate_diff(search);
+            return mid_evaluate_close_game(search);
     }
     ++(search->n_nodes);
     #if USE_END_SC
@@ -318,7 +318,7 @@ int nega_scout(Search *search, int alpha, int beta, int depth, bool skipped, uin
     int g, v = -INF;
     if (legal == 0ULL){
         if (skipped)
-            return end_evaluate(&search->board);
+            return end_evaluate_close_game(&search->board);
         search->eval_feature_reversed ^= 1;
         search->board.pass();
             v = -nega_scout(search, -beta, -alpha, depth, true, LEGAL_UNDEFINED, is_end_search, searching);
@@ -393,7 +393,7 @@ pair<int, int> first_nega_scout(Search *search, int alpha, int beta, int depth, 
     if (legal == 0ULL){
         pair<int, int> res;
         if (skipped){
-            res.first = end_evaluate(&search->board);
+            res.first = end_evaluate_close_game(&search->board);
             res.second = -1;
         } else{
             search->eval_feature_reversed ^= 1;

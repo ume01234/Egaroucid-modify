@@ -112,7 +112,7 @@ inline bool move_evaluate(Search *search, Flip_value *flip_value, const int alph
         //else{
         switch (depth){
             case 0:
-                flip_value->value += -mid_evaluate_diff(search) * W_VALUE_SHALLOW;
+                flip_value->value += -mid_evaluate_close_game(search) * W_VALUE_SHALLOW;
                 break;
             case 1:
                 flip_value->value += -nega_alpha_eval1(search, alpha, beta, false, searching) * W_VALUE;

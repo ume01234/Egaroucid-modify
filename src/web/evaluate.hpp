@@ -432,6 +432,21 @@ inline int mid_evaluate_diff(Search *search){
     return max(-SCORE_MAX, min(SCORE_MAX, res));
 }
 
+// 接戦AI用の評価関数
+// 駒数差の絶対値を最小化する
+inline int mid_evaluate_close_game(Search *search) {
+    int raw_eval = mid_evaluate_diff(search);
+    // 評価値の絶対値が小さいほど良い（0に近いほど接戦）
+    // nega-alpha探索は最大化を行うため、-abs(raw_eval)を返す
+    return -abs(raw_eval);
+}
+
+// 接戦AI用の終盤評価関数
+inline int end_evaluate_close_game(Board *b) {
+    int score = b->score_player();
+    return -abs(score);
+}
+
 inline int pick_pattern_idx(const uint_fast8_t b_arr[], const Feature_to_coord *f){
     int res = 0;
     for (int i = 0; i < f->n_cells; ++i){

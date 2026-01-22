@@ -46,7 +46,9 @@ let bef_grid = [
 let n_stones = 4;
 let player = 0;
 let ai_player = -1;
-let level_idx = 0;
+const FIXED_LEVEL = 10;
+let level_idx = FIXED_LEVEL;
+var use_mirror_mode = true;  // true: 案C（ミラーリング）, false: 案A
 let level_names = [];
 let game_end = false;
 let value_calculated = false;
@@ -105,25 +107,6 @@ var Module = {
     'onRuntimeInitialized' : initialize_ai_wrapper
 }
 
-const level_range = document.getElementById('ai_level');
-const level_show = document.getElementById('ai_level_label');
-const custom_setting = document.getElementById('custom');
-
-const setCurrentValue = (val) => {
-    level_show.innerText = level_names[val];
-}
-
-const rangeOnChange = (e) =>{
-    setCurrentValue(e.target.value);
-}
-
-const setCurrentValue_book = (val) => {
-    book_label.innerText = book_label.innerText = book_range.value + '手';
-}
-
-const rangeOnChange_book = (e) =>{
-    setCurrentValue_book(e.target.value);
-}
 
 function start() {
     for (var y = 0; y < hw; ++y){
@@ -144,7 +127,6 @@ function start() {
     graph.update();
     game_end = false;
     document.getElementById('start').disabled = true;
-    level_range.disabled = true;
     var show_value_elem = document.getElementById('show_value');
     show_value_elem.disabled = true;
     show_value = show_value_elem.checked;
@@ -157,7 +139,6 @@ function start() {
         }
     }
     console.log("ai player", ai_player);
-    level_idx = level_range.value;
     console.log("level", level_idx);
     n_stones = 4;
     show(-1, -1);
@@ -328,13 +309,13 @@ function check_mobility() {
 
 async function ai() {
     let res = [
-        -1, -1, -1, -1, -1, -1, -1, -1, 
-        -1, -1, -1, -1, -1, -1, -1, -1, 
-        -1, -1, -1, -1, -1, -1, -1, -1, 
-        -1, -1, -1, -1, -1, -1, -1, -1, 
-        -1, -1, -1, -1, -1, -1, -1, -1, 
-        -1, -1, -1, -1, -1, -1, -1, -1, 
-        -1, -1, -1, -1, -1, -1, -1, -1, 
+        -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1, -1, -1, -1, -1
     ];
     for (var y = 0; y < hw; ++y) {
@@ -350,7 +331,12 @@ async function ai() {
     var pointer = _malloc(hw2 * 4);
     var offset = pointer / 4;
     HEAP32.set(res, offset);
-    var val = _ai_js(pointer, level_idx, ai_player);
+    var val;
+    if (use_mirror_mode) {
+        val = _ai_mirror_js(pointer, level_idx, ai_player);
+    } else {
+        val = _ai_js(pointer, level_idx, ai_player);
+    }
     _free(pointer);
     console.log('val', val);
     var y = Math.floor(val / 1000 / hw);
@@ -366,13 +352,13 @@ function calc_value() {
         return;
     }
     let res = new Int32Array([
-        -1, -1, -1, -1, -1, -1, -1, -1, 
-        -1, -1, -1, -1, -1, -1, -1, -1, 
-        -1, -1, -1, -1, -1, -1, -1, -1, 
-        -1, -1, -1, -1, -1, -1, -1, -1, 
-        -1, -1, -1, -1, -1, -1, -1, -1, 
-        -1, -1, -1, -1, -1, -1, -1, -1, 
-        -1, -1, -1, -1, -1, -1, -1, -1, 
+        -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1, -1, -1, -1, -1
     ]);
     for (var y = 0; y < hw; ++y) {
@@ -413,7 +399,24 @@ function calc_value() {
     }
 }
 
+// 案C用: 人間の手の評価値を計算
+function calc_opponent_eval(y, x) {
+    let res = new Int32Array(hw2);
+    for (var yy = 0; yy < hw; ++yy) {
+        for (var xx = 0; xx < hw; ++xx) {
+            if(bef_grid[yy][xx] == 0) res[yy * hw + xx] = 0;
+            else if (bef_grid[yy][xx] == 1) res[yy * hw + xx] = 1;
+            else res[yy * hw + xx] = -1;
+        }
+    }
+    var pointer = _malloc(hw2 * 4);
+    HEAP32.set(res, pointer / 4);
+    _calc_opponent_eval_js(pointer, level_idx, ai_player, y, x);
+    _free(pointer);
+}
+
 function move(y, x) {
+    var bef_player = player;  // 手を打った側を記録
     for (var yy = 0; yy < hw; ++yy) {
         for (var xx = 0; xx < hw; ++xx) {
             bef_grid[yy][xx] = grid[yy][xx];
@@ -453,6 +456,12 @@ function move(y, x) {
     }
     ++n_stones;
     player = 1 - player;
+
+    // 人間の手の場合、評価値を計算（案C用）
+    if (bef_player != ai_player && use_mirror_mode) {
+        calc_opponent_eval(y, x);
+    }
+
     show(y, x);
 }
 
@@ -496,14 +505,14 @@ function end_game() {
     if (stones[ai_player] < stones[1 - ai_player]) {
         document.getElementById('result_text').innerHTML = lang_you_win;
         var dis = stones[1 - ai_player] - stones[ai_player] + hw2 - stones[ai_player] - stones[1 - ai_player];
-        tweet_str = lang_tweet_str_0_win + lang_tweet_str_1 + level_names[level_idx] + lang_tweet_str_2 + hint + lang_tweet_str_3 + dis + lang_tweet_str_4 + lang_tweet_str_5_win;
+        tweet_str = lang_tweet_str_0_win + lang_tweet_str_1 + '接戦AI' + lang_tweet_str_2 + hint + lang_tweet_str_3 + dis + lang_tweet_str_4 + lang_tweet_str_5_win;
     } else if (stones[ai_player] > stones[1 - ai_player]) {
         document.getElementById('result_text').innerHTML = lang_ai_win;
         var dis = stones[ai_player] - stones[1 - ai_player] + hw2 - stones[ai_player] - stones[1 - ai_player];
-        tweet_str = lang_tweet_str_0_lose + lang_tweet_str_1 + level_names[level_idx] + lang_tweet_str_2 + hint + lang_tweet_str_3 + dis + lang_tweet_str_4 + lang_tweet_str_5_lose;
+        tweet_str = lang_tweet_str_0_lose + lang_tweet_str_1 + '接戦AI' + lang_tweet_str_2 + hint + lang_tweet_str_3 + dis + lang_tweet_str_4 + lang_tweet_str_5_lose;
     } else {
         document.getElementById('result_text').innerHTML = lang_draw;
-        tweet_str = lang_tweet_str_0_draw + lang_tweet_str_1 + level_names[level_idx] + lang_tweet_str_2 + hint + lang_tweet_str_4 + lang_tweet_str_5_draw;
+        tweet_str = lang_tweet_str_0_draw + lang_tweet_str_1 + '接戦AI' + lang_tweet_str_2 + hint + lang_tweet_str_4 + lang_tweet_str_5_draw;
     }
     var tweet_result = document.getElementById('tweet_result');
     tweet_result.innerHTML = lang_tweet_result + '<a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button" data-text="' + tweet_str + '" data-url="https://www.egaroucid.nyanyan.dev/ja/web/" data-hashtags="egaroucid" data-related="takuto_yamana" data-show-count="false">Tweet</a><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>';
@@ -525,19 +534,12 @@ function end_game() {
     document.getElementById('start').disabled = false;
     var show_value_elem = document.getElementById('show_value');
     show_value_elem.disabled = false;
-    level_range.disabled = false;
     let players = document.getElementsByName('ai_player');
     for (var i = 0; i < 2; ++i)
         players.item(i).disabled = false;
 }
 
 window.addEventListener('DOMContentLoaded', function () {
-    for (var i = 0; i <= 15; ++i) {
-        level_names.push(lang_level + i);
-    }
-    level_names
-    level_range.addEventListener('input', rangeOnChange);
-    setCurrentValue(level_range.value);
     var container = document.getElementById('chart_container');
     ctx.clientWidth = container.clientWidth;
     ctx.clientHeight = container.clientHeight;
@@ -627,7 +629,6 @@ function reset(){
     var show_value_elem = document.getElementById('show_value');
     show_value_elem.disabled = false;
     show_value = show_value_elem.checked;
-    level_range.disabled = false;
     let players = document.getElementsByName('ai_player');
     for (var i = 0; i < 2; ++i){
         players.item(i).disabled = false;

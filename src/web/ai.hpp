@@ -310,7 +310,7 @@ int ai_window(Board board, int level, int alpha, int beta, bool use_multi_thread
         int book_result = book.get(&board);
         if (book_result != -INF)
             return -value_sign * book_result;
-        else 
+        else
     #endif
     if (level == 0)
         return value_sign * mid_evaluate(&board);
@@ -319,4 +319,46 @@ int ai_window(Board board, int level, int alpha, int beta, bool use_multi_thread
         double mpct;
         get_level(level, board.n_discs() - 4, &is_mid_search, &depth, &use_mpc, &mpct);
     return value_sign * tree_search_window(board, depth, alpha, beta, use_mpc, mpct, use_multi_thread);
+}
+
+// 案C: ミラーリングAI - 相手の評価値に最も近い手を選択
+Search_result ai_mirror(Board board, int level, int target_eval) {
+    Search_result res;
+
+    if (board.get_legal() == 0ULL) {
+        board.pass();
+        if (board.get_legal() == 0ULL) {
+            res.policy = -1;
+            res.value = -board.score_player();
+            return res;
+        }
+    }
+
+    uint64_t legal = board.get_legal();
+    int best_policy = -1;
+    int best_value = 0;
+    int min_diff = INF;
+
+    Flip flip;
+    for (uint_fast8_t cell = first_bit(&legal); legal; cell = next_bit(&legal)) {
+        calc_flip(&flip, &board, cell);
+        Board child = board.copy();
+        child.move_board(&flip);
+
+        Search_result child_result = ai(child, level, true, false, false);
+        int eval = -child_result.value;
+        int diff = abs(eval - target_eval);
+
+        cerr << "  move " << idx_to_coord(cell) << " eval=" << eval << " diff=" << diff << endl;
+
+        if (diff < min_diff) {
+            min_diff = diff;
+            best_policy = cell;
+            best_value = eval;
+        }
+    }
+
+    res.policy = best_policy;
+    res.value = best_value;
+    return res;
 }

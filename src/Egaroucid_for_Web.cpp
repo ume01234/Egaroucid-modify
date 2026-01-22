@@ -12,6 +12,9 @@
 #include <iostream>
 #include "web/ai.hpp"
 
+// 案C用グローバル変数: 相手の評価値
+static int g_opponent_eval = 0;
+
 inline void init(int *percentage) {
     *percentage = 1;
     board_init();
@@ -88,6 +91,44 @@ extern "C" int ai_js(int *arr_board, int level, int ai_player) {
     int res = output_coord(result.policy, result.value);
     cout << "res " << res << endl;
     return res;
+}
+
+extern "C" int calc_opponent_eval_js(int *arr_board, int level, int ai_player, int move_y, int move_x) {
+    Board b;
+    input_board(&b, arr_board, 1 - ai_player);  // 人間視点
+
+    int move_cell = HW2_M1 - (move_y * HW + move_x);
+    Flip flip;
+    calc_flip(&flip, &b, move_cell);
+    b.move_board(&flip);
+
+    // 探索で評価値を計算
+    Search_result result = ai(b, level, true, false, false);
+    g_opponent_eval = -result.value;
+
+    cerr << "opponent eval: " << g_opponent_eval << endl;
+    return g_opponent_eval;
+}
+
+extern "C" int ai_mirror_js(int *arr_board, int level, int ai_player) {
+    Board b;
+    int n_stones = input_board(&b, arr_board, ai_player);
+
+    // 初手はランダム
+    if (n_stones == 4) {
+        uint64_t legal = b.get_legal();
+        vector<int> moves;
+        for (uint_fast8_t cell = first_bit(&legal); legal; cell = next_bit(&legal))
+            moves.push_back(cell);
+        int policy = moves[myrandrange(0, (int)moves.size())];
+        cerr << "mirror AI first move (random): " << idx_to_coord(policy) << endl;
+        return output_coord(policy, 0);
+    }
+
+    // 各手の評価値を計算し、相手に最も近い手を選択
+    Search_result result = ai_mirror(b, level, g_opponent_eval);
+    cerr << "mirror AI: target=" << g_opponent_eval << " selected=" << idx_to_coord(result.policy) << " value=" << result.value << endl;
+    return output_coord(result.policy, result.value);
 }
 
 extern "C" void calc_value(int *arr_board, int *res, int level, int ai_player) {
