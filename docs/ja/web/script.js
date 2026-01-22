@@ -109,6 +109,11 @@ var Module = {
 
 
 function start() {
+    // 累積評価値をリセット（案C用）
+    if (use_mirror_mode && typeof _reset_cumulative === 'function') {
+        _reset_cumulative();
+        console.log("cumulative values reset");
+    }
     for (var y = 0; y < hw; ++y){
         for (var x = 0; x < hw; ++x) {
             grid[y][x] = -1;

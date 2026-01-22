@@ -12,8 +12,10 @@
 #include <iostream>
 #include "web/ai.hpp"
 
-// 案C用グローバル変数: 相手の評価値
-static int g_opponent_eval = 0;
+// 案C用グローバル変数
+static int g_opponent_eval = 0;      // 相手の現在の手の評価値
+static int g_human_cumulative = 0;   // 人間の累積評価
+static int g_ai_cumulative = 0;      // AIの累積評価
 
 inline void init(int *percentage) {
     *percentage = 1;
@@ -105,8 +107,9 @@ extern "C" int calc_opponent_eval_js(int *arr_board, int level, int ai_player, i
     // 探索で評価値を計算
     Search_result result = ai(b, level, true, false, false);
     g_opponent_eval = -result.value;
+    g_human_cumulative += g_opponent_eval;  // 累積に加算
 
-    cerr << "opponent eval: " << g_opponent_eval << endl;
+    cerr << "opponent eval: " << g_opponent_eval << " human_cum: " << g_human_cumulative << " ai_cum: " << g_ai_cumulative << endl;
     return g_opponent_eval;
 }
 
@@ -114,20 +117,36 @@ extern "C" int ai_mirror_js(int *arr_board, int level, int ai_player) {
     Board b;
     int n_stones = input_board(&b, arr_board, ai_player);
 
-    // 初手はランダム
+    // 初手はランダム（ただし評価値は累積に加算）
     if (n_stones == 4) {
         uint64_t legal = b.get_legal();
         vector<int> moves;
         for (uint_fast8_t cell = first_bit(&legal); legal; cell = next_bit(&legal))
             moves.push_back(cell);
         int policy = moves[myrandrange(0, (int)moves.size())];
-        cerr << "mirror AI first move (random): " << idx_to_coord(policy) << endl;
-        return output_coord(policy, 0);
+
+        // ランダムに選んだ手の評価値を計算して累積に加算
+        Flip flip;
+        calc_flip(&flip, &b, policy);
+        Board child = b.copy();
+        child.move_board(&flip);
+        Search_result child_result = ai(child, level, true, false, false);
+        int eval = -child_result.value;
+        g_ai_cumulative += eval;
+
+        cerr << "mirror AI first move (random): " << idx_to_coord(policy) << " eval=" << eval << " ai_cum=" << g_ai_cumulative << endl;
+        return output_coord(policy, eval);
     }
 
-    // 各手の評価値を計算し、相手に最も近い手を選択
-    Search_result result = ai_mirror(b, level, g_opponent_eval);
-    cerr << "mirror AI: target=" << g_opponent_eval << " selected=" << idx_to_coord(result.policy) << " value=" << result.value << endl;
+    // 累積差分を補正したターゲットを計算
+    int adjusted_target = g_human_cumulative - g_ai_cumulative;
+    cerr << "mirror AI: human_cum=" << g_human_cumulative << " ai_cum=" << g_ai_cumulative << " adjusted_target=" << adjusted_target << endl;
+
+    // 補正ターゲットに最も近い手を選択
+    Search_result result = ai_mirror(b, level, adjusted_target);
+    g_ai_cumulative += result.value;  // 累積に加算
+
+    cerr << "mirror AI: selected=" << idx_to_coord(result.policy) << " value=" << result.value << " new_ai_cum=" << g_ai_cumulative << endl;
     return output_coord(result.policy, result.value);
 }
 
@@ -168,4 +187,11 @@ extern "C" void stop() {
 
 extern "C" void resume() {
     global_searching = true;
+}
+
+extern "C" void reset_cumulative() {
+    g_opponent_eval = 0;
+    g_human_cumulative = 0;
+    g_ai_cumulative = 0;
+    cerr << "cumulative values reset" << endl;
 }
