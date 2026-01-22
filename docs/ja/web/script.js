@@ -52,6 +52,8 @@ var use_mirror_mode = true;  // true: 案C（ミラーリング）, false: 案A
 let level_names = [];
 let game_end = false;
 let value_calculated = false;
+let last_ai_move_y = -1;
+let last_ai_move_x = -1;
 let step = 0;
 let isstart = true;
 let show_value = true;
@@ -114,6 +116,9 @@ function start() {
         _reset_cumulative();
         console.log("cumulative values reset");
     }
+    // AIの最後の手をリセット
+    last_ai_move_y = -1;
+    last_ai_move_x = -1;
     for (var y = 0; y < hw; ++y){
         for (var x = 0; x < hw; ++x) {
             grid[y][x] = -1;
@@ -175,7 +180,9 @@ function show(r, c) {
         for (var x = 0; x < 8; ++x) {
             var stone_id = "stone_" + (y * hw + x);
             var cell_id = "cell_" + (y * hw + x);
-            document.getElementById(cell_id).style.backgroundColor = "#249972";
+            var cell_elem = document.getElementById(cell_id);
+            cell_elem.style.backgroundColor = "";
+            cell_elem.classList.remove("cell_ai_move");
             document.getElementById(stone_id).innerHTML = "";
             if (grid[y][x] == 0) {
                 if (bef_grid[y][x] != 0) {
@@ -209,9 +216,10 @@ function show(r, c) {
             }
         }
     }
-    if (inside(r, c)) {
-        var cell_id = "cell_" + (r * hw + c);
-        document.getElementById(cell_id).style.backgroundColor = "#d14141";
+    // AIの手を赤枠で表示
+    if (inside(last_ai_move_y, last_ai_move_x)) {
+        var ai_cell_id = "cell_" + (last_ai_move_y * hw + last_ai_move_x);
+        document.getElementById(ai_cell_id).classList.add("cell_ai_move");
     }
     var black_count = 0, white_count = 0;
     for (var y = 0; y < hw; ++y) {
@@ -348,6 +356,9 @@ async function ai() {
     var x = Math.floor((val - y * 1000 * hw) / 1000);
     var dif_stones = val - y * 1000 * hw - x * 1000 - 100;
     console.log('y', y, 'x', x, 'dif_stones', dif_stones);
+    // AIの手を記録
+    last_ai_move_y = y;
+    last_ai_move_x = x;
     move(y, x);
     update_graph(dif_stones);
 }
@@ -638,6 +649,9 @@ function reset(){
     for (var i = 0; i < 2; ++i){
         players.item(i).disabled = false;
     }
+    // AIの最後の手をリセット
+    last_ai_move_y = -1;
+    last_ai_move_x = -1;
     for (var y = 0; y < hw; ++y){
         for (var x = 0; x < hw; ++x) {
             grid[y][x] = -1;
