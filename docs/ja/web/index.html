@@ -12,7 +12,7 @@
 <meta property="og:title" content="改造版Egaroucid" />
 <meta property="og:description" content="オセロAI Egaroucid の改造版です。" />
 <meta name="description" content="オセロAI Egaroucid の改造版です。"/>
-<link rel="stylesheet" href="style_web.css?v=3"><title>改造版Egaroucid</title>
+<link rel="stylesheet" href="style_web.css?v=4"><title>改造版Egaroucid</title>
 </head>
 <body>
 <div class="box">
@@ -57,26 +57,28 @@
     <div class="black-background" id="js-black-bg"></div>
 </div>
 
-<div class="div_main">
-    <table class="table_board" align="center" id="table_board"></table>
-    <table class="status" id="status" align="center">
-        <tr>
-            <td class="status_cell"><span class="state_blank"></span></td>
-            <td class="status_cell"><span class="black_stone"></span></td>
-            <td class="status_char"><span class="state_blank">2</span></td>
-            <td class="status_char"><span class="state_blank">-</span></td>
-            <td class="status_char"><span class="state_blank">2</span></td>
-            <td class="status_cell"><span class="white_stone"></span></td>
-            <td class="status_cell"><span class="state_blank"></span></td>
-        </tr>
-    </table>
-</div>
+<div class="game-container">
+    <div class="div_main">
+        <table class="table_board" align="center" id="table_board"></table>
+        <table class="status" id="status" align="center">
+            <tr>
+                <td class="status_cell"><span class="state_blank"></span></td>
+                <td class="status_cell"><span class="black_stone"></span></td>
+                <td class="status_char"><span class="state_blank">2</span></td>
+                <td class="status_char"><span class="state_blank">-</span></td>
+                <td class="status_char"><span class="state_blank">2</span></td>
+                <td class="status_cell"><span class="white_stone"></span></td>
+                <td class="status_cell"><span class="state_blank"></span></td>
+            </tr>
+        </table>
+    </div>
 
-<div id="info" class="info">
-    <div class="sub_title">対局情報</div>
-    <div class="sub_sub_title">予想最終石差グラフ</div>
-    <div class="chart" id="chart_container">
-        <canvas id="graph"></canvas>
+    <div id="info" class="info">
+        <div class="sub_title">対局情報</div>
+        <div class="sub_sub_title">予想最終石差グラフ</div>
+        <div class="chart" id="chart_container">
+            <canvas id="graph"></canvas>
+        </div>
     </div>
 </div>
 
