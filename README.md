@@ -9,7 +9,7 @@ Webブラウザで遊べます。
 
 ## 遊び方
 
-1. [Web版](https://hashizumerikuto.github.io/Egaroucid-modify/ja/web/)にアクセス
+1. [Web版](https://ume01234.github.io/Egaroucid-modify/ja/web/)にアクセス
 2. 先攻/後攻を選んで「対局開始」
 
 ---

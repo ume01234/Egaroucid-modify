@@ -96,3 +96,6 @@ src/tools/evaluation/dl_test
 trash
 
 .claude
+
+# 変更点説明書
+project_reference.md
