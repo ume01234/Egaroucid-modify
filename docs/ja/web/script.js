@@ -51,6 +51,7 @@ let level_idx = FIXED_LEVEL;
 var use_mirror_mode = true;  // true: 案C（ミラーリング）, false: 案A
 let level_names = [];
 let game_end = false;
+let ai_thinking = false;
 let value_calculated = false;
 let last_ai_move_y = -1;
 let last_ai_move_x = -1;
@@ -248,11 +249,11 @@ function show(r, c) {
     value_calculated = false;
 }
 
-function ai_check() {
+async function ai_check() {
     if (game_end){
         clearInterval(ai_check);
     } else if (player == ai_player) {
-        ai();
+        await ai();
     } else if (show_value && !value_calculated) {
         calc_value();
         value_calculated = true;
@@ -321,6 +322,8 @@ function check_mobility() {
 }
 
 async function ai() {
+    ai_thinking = true;
+    try {
     let res = [
         -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1, -1, -1, -1, -1,
@@ -359,8 +362,11 @@ async function ai() {
     // AIの手を記録
     last_ai_move_y = y;
     last_ai_move_x = x;
-    move(y, x);
+    move(y, x, true);  // fromAI=trueでAI思考中チェックをバイパス
     update_graph(dif_stones);
+    } finally {
+        ai_thinking = false;
+    }
 }
 
 function calc_value() {
@@ -431,7 +437,8 @@ function calc_opponent_eval(y, x) {
     _free(pointer);
 }
 
-function move(y, x) {
+function move(y, x, fromAI = false) {
+    if (ai_thinking && !fromAI) return;  // AI思考中は人間のクリックを無視
     var bef_player = player;  // 手を打った側を記録
     for (var yy = 0; yy < hw; ++yy) {
         for (var xx = 0; xx < hw; ++xx) {

@@ -15,12 +15,6 @@
 - **通常のAI**: 自分の有利さを最大化 → 大差で勝つ
 - **改造版AI**: 相手の手の評価に合わせる → 接戦を狙う
 
-### 環境
-
-- **OS**: macOS（MacBook Air）
-- **エディタ**: Cursor（VSCode）
-- **ツール**: Homebrew、Git、Emscripten（バージョン3.1.20）
-
 ---
 
 ## 1. オリジナルEgaroucidの処理
